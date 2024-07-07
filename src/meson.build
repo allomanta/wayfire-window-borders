@@ -1,4 +1,4 @@
-decoration = shared_module('decoration',
+decorations = shared_module('decorations',
     ['decoration.cpp', 'deco-subsurface.cpp', 'deco-button.cpp',
       'deco-layout.cpp', 'deco-theme.cpp'],
     dependencies: [wlroots, pixman, wf_protos, wfconfig, cairo, pango, pangocairo],
