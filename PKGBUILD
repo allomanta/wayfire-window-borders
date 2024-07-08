@@ -1,9 +1,9 @@
-pkgname=wayfire-better-tile
+pkgname=wayfire-window-borders
 pkgver=0.1
 pkgrel=1
 pkgdesc="Simple window borders for Wayfire."
 arch=('x86_64')
-url="https://github.com/JurMax/wayfire-window-borders"
+url="https://github.com/allomanta/wayfire-window-borders"
 license=('MIT')
 depends=('wayfire')
 makedepends=('git' 'meson' 'ninja' 'cmake')
