@@ -15,7 +15,11 @@
 #include "wayfire/toplevel.hpp"
 
 class wayfire_decoration : public wf::plugin_interface_t {
-	wf::view_matcher_t ignore_views{ "decoration/ignore_views" };
+	wf::view_matcher_t ignore_views{ "borders/ignore_views" };
+
+	wf::option_wrapper_t<bool> override_client_side{
+		"borders/override_client_side"
+	};
 
 	wf::signal::connection_t<wf::txn::new_transaction_signal> on_new_tx =
 		[=](wf::txn::new_transaction_signal *ev) {
@@ -102,7 +106,8 @@ class wayfire_decoration : public wf::plugin_interface_t {
 
 	bool should_decorate_view(wayfire_toplevel_view view)
 	{
-		return !ignore_decoration_of_view(view);
+		return !ignore_decoration_of_view(view) &&
+		       (override_client_side || view->should_be_decorated());
 	}
 
 	void adjust_new_decorations(wayfire_toplevel_view view)
