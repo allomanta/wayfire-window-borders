@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <wayfire>
 	<plugin name="borders">
-		<_short>Borders</_short>
-		<_long>Window borders.</_long>
+		<_short>Window Borders</_short>
+		<_long>Plugin that adds borders around windows.</_long>
 		<category>Effects</category>
 		<option name="border_size" type="int">
 			<_short>Border size</_short>
