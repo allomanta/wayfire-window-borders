@@ -31,8 +31,6 @@ class decoration_theme_t {
 			       bool active) const;
 
     private:
-	wf::option_wrapper_t<std::string> font{ "borders/font" };
-	wf::option_wrapper_t<int> title_height{ "borders/title_height" };
 	wf::option_wrapper_t<int> border_size{ "borders/border_size" };
 	wf::option_wrapper_t<wf::color_t> active_color{ "borders/active_color" };
 	wf::option_wrapper_t<wf::color_t> inactive_color{
