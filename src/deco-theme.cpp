@@ -1,4 +1,6 @@
 #include "deco-theme.hpp"
+#include <iostream>
+#include <string>
 #include <wayfire/core.hpp>
 #include <wayfire/opengl.hpp>
 #include <wayfire/config/types.hpp>

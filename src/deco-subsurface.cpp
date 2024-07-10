@@ -19,6 +19,7 @@
 #include <wayfire/signal-definitions.hpp>
 #include <wayfire/toplevel-view.hpp>
 #include "deco-subsurface.hpp"
+#include "deco-layout.hpp"
 #include "deco-theme.hpp"
 #include <wayfire/window-manager.hpp>
 
@@ -28,7 +29,9 @@
 
 namespace wb
 {
-class simple_decoration_node_t : public wf::scene::node_t {
+class simple_decoration_node_t : public wf::scene::node_t,
+				 public wf::pointer_interaction_t,
+				 public wf::touch_interaction_t {
 	std::weak_ptr<wf::toplevel_view_interface_t> _view;
 	wf::signal::connection_t<wf::view_title_changed_signal> title_set =
 		[=](wf::view_title_changed_signal *ev) {
@@ -44,6 +47,8 @@ class simple_decoration_node_t : public wf::scene::node_t {
 
     public:
 	wb::decor::decoration_theme_t theme;
+	wb::decor::decoration_layout_t layout;
+	wf::region_t cached_region;
 
 	wf::dimensions_t size;
 
@@ -53,6 +58,10 @@ class simple_decoration_node_t : public wf::scene::node_t {
 	simple_decoration_node_t(wayfire_toplevel_view view)
 		: node_t(false)
 		, theme{}
+		, layout{ theme, [=](wlr_box box) {
+				 wf::scene::damage_node(shared_from_this(),
+							box + get_offset());
+			 } }
 	{
 		this->_view = view->weak_from_this();
 		view->connect(&title_set);
@@ -78,6 +87,30 @@ class simple_decoration_node_t : public wf::scene::node_t {
 		}
 
 		theme.render_background(fb, geometry, scissor, activated);
+	}
+
+	std::optional<wf::scene::input_node_t>
+	find_node_at(const wf::pointf_t &at) override
+	{
+		wf::pointf_t local = at - wf::pointf_t{ get_offset() };
+		if (cached_region.contains_pointf(local)) {
+			return wf::scene::input_node_t{
+				.node = this,
+				.local_coords = local,
+			};
+		}
+
+		return {};
+	}
+
+	pointer_interaction_t &pointer_interaction() override
+	{
+		return *this;
+	}
+
+	touch_interaction_t &touch_interaction() override
+	{
+		return *this;
 	}
 
 	class decoration_render_instance_t
@@ -109,6 +142,18 @@ class simple_decoration_node_t : public wf::scene::node_t {
 			const wf::render_target_t &target,
 			wf::region_t &damage) override
 		{
+			auto our_region =
+				self->cached_region + self->get_offset();
+			wf::region_t our_damage = damage & our_region;
+
+			if (!our_damage.empty()) {
+				instructions.push_back(
+					wf::scene::render_instruction_t{
+						.instance = this,
+						.target = target,
+						.damage = std::move(our_damage),
+					});
+			}
 		}
 
 		void render(const wf::render_target_t &target,
@@ -142,6 +187,10 @@ class simple_decoration_node_t : public wf::scene::node_t {
 		if (auto view = _view.lock()) {
 			view->damage();
 			size = dims;
+			layout.resize(size.width, size.height);
+			if (!view->toplevel()->current().fullscreen) {
+				this->cached_region = layout.calculate_region();
+			}
 			view->damage();
 		}
 	}
@@ -152,8 +201,11 @@ class simple_decoration_node_t : public wf::scene::node_t {
 			_view.lock()->toplevel()->current().fullscreen;
 		if (fullscreen) {
 			current_thickness = 0;
+			current_titlebar = 0;
+			this->cached_region.clear();
 		} else {
 			current_thickness = theme.get_border_size();
+			this->cached_region = layout.calculate_region();
 		}
 	}
 };

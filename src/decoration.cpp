@@ -14,6 +14,8 @@
 #include "wayfire/toplevel-view.hpp"
 #include "wayfire/toplevel.hpp"
 
+#include <iostream>
+
 class wayfire_decoration : public wf::plugin_interface_t {
 	wf::view_matcher_t ignore_views{ "borders/ignore_views" };
 
